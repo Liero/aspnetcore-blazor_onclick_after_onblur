@@ -1,0 +1,60 @@
+<style>
+    h2 {
+        margin-top: 1em
+    }
+</style>
+
+<h1>BUG</h1>
+@@onclick callback of an item in foreach is not being called
+<h2>Steps to reproduce</h2>
+<ol>
+    <li>Click any item => the item is selected</li>
+    <li>Filter the items by typing 'c' in the textbox and click on 4th item => the item is not selected</li>
+</ol>
+
+
+
+SELECTED ITEM: @SelectedItem
+<br />
+<input @onblur="OnBlur" @oninput="OnInput" />
+<div style="height: 20em; overflow: auto">
+    @foreach (var item in Items)
+    {
+        <div @onclick="_ => OnItemClick(item)" @key="item">@item</div>
+    }
+</div>
+
+
+
+
+<h2>Explanation</h2>
+<p>The textbox contains @@onblur eventhandler which refreshes the items. </p>
+
+
+
+
+@code {
+    string SelectedItem;
+
+    List<string> Items = GenerateItems().ToList();
+
+    void OnBlur()
+    {
+        Items = GenerateItems().ToList();
+    }
+
+    void OnInput(ChangeEventArgs args)
+    {
+        Items = GenerateItems()
+            .Where(i => i.Contains((string)args.Value, StringComparison.CurrentCultureIgnoreCase))
+            .ToList();
+    }
+
+    void OnItemClick(string item)
+    {
+        SelectedItem = item;
+    }
+
+    static IEnumerable<string> GenerateItems() => Enumerable.Range(0, 40)
+        .Select(i => $"{i} " + new string("ABCDEFGHIJKL".Skip(i % 10).Take(4).ToArray()));
+}
